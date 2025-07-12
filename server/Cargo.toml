@@ -8,3 +8,4 @@ axum = { version = "0.8", features = ["ws"] }
 tokio = { version = "1.46", features = ["full"] }
 flatbuffers = "25"
 futures-util = "0.3"
+global-hotkey = "0.7"
