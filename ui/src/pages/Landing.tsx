@@ -36,7 +36,7 @@ const Landing = () => {
       {state.isLoading && (
         <div style={{ marginTop: '20px' }}>
           <p style={{ color: '#666', fontSize: '14px' }}>
-            Please select a screen or window to capture when prompted
+            Connecting to server and requesting screen access...
           </p>
           <div style={{
             width: '40px',
@@ -55,6 +55,37 @@ const Landing = () => {
               }
             `}
           </style>
+        </div>
+      )}
+
+      {state.error && (
+        <div style={{
+          marginTop: '20px',
+          padding: '12px',
+          backgroundColor: '#f8d7da',
+          color: '#721c24',
+          border: '1px solid #f5c6cb',
+          borderRadius: '8px',
+          maxWidth: '400px',
+          margin: '20px auto 0'
+        }}>
+          <strong>Error:</strong> {state.error}
+          <div style={{ marginTop: '10px' }}>
+            <button
+              onClick={initializeApp}
+              style={{
+                padding: '8px 16px',
+                fontSize: '14px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       )}
     </div>
