@@ -1,5 +1,5 @@
 import './Timeline.css';
-import type { TimelineItem } from '../store/AppContext';
+import type { TimelineItem } from '../store/context';
 
 const Timeline = ({ items = [] }: { items: TimelineItem[] }) => {
   return (

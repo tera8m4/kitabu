@@ -1,4 +1,4 @@
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 
 const Landing = () => {
   const { state, initializeApp } = useApp();

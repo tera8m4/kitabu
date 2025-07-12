@@ -1,12 +1,6 @@
-import React, { createContext, useContext, useState, } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-export interface TimelineItem {
-  id: string;
-  image: string;
-  text: string;
-  timestamp: Date;
-}
+import { AppContext, type TimelineItem } from './context';
 
 interface CaptureSettings {
   format: 'image/png' | 'image/jpeg' | 'image/webp';
@@ -24,18 +18,6 @@ interface AppState {
   websocket: WebSocket | null;
   error: string | null;
 }
-
-interface AppContextType {
-  state: AppState;
-  initializeApp: () => Promise<void>;
-  addTimelineItem: (item: Omit<TimelineItem, 'id' | 'timestamp'>) => void;
-  updateCaptureSettings: (settings: Partial<CaptureSettings>) => void;
-  setMediaStream: (stream: MediaStream | null) => void;
-  setWebSocket: (ws: WebSocket | null) => void;
-  isInitialized: boolean;
-}
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
 const WebsocketURL = `ws://localhost:49156`;
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -155,10 +137,3 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
-export const useApp = () => {
-  const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
-  return context;
-};
