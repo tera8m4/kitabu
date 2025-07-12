@@ -1,0 +1,45 @@
+namespace Protocol;
+
+table InitializationMessage {
+
+}
+
+table RequestScreenshot {
+
+}
+
+table OCRMessage {
+  key: string;
+  text: string;
+}
+
+union MessageData {
+  InitializationMessage,
+  RequestScreenshot,
+  OCRMessage
+}
+
+table Message {
+  id: uint64;
+  data: MessageData;
+}
+
+enum ImageFormat : ubyte {
+  PNG = 0,
+  JPEG = 1
+}
+
+table ResponseScreenShot {
+  key: string;
+  format: ImageFormat;
+  image: [uint8];
+}
+
+union ResponseData {
+  ResponseScreenShot,
+}
+
+table Response {
+  id: uint64;
+  data: ResponseData;
+}
