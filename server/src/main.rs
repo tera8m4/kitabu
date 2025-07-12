@@ -8,6 +8,8 @@ use flatbuffers;
 use std::net::SocketAddr;
 use flatbuffers::FlatBufferBuilder;
 use tokio::net::TcpListener;
+use tokio::sync::mpsc;
+use futures_util::{StreamExt, SinkExt};
 
 #[allow(dead_code, unused_imports, unsafe_code, unsafe_op_in_unsafe_fn)]
 mod messages_generated;
@@ -17,36 +19,53 @@ async fn websocket_handler(ws: WebSocketUpgrade) -> response::Response {
     ws.on_upgrade(handle_socket)
 }
 
-async fn handle_socket(mut socket: WebSocket) {
-    while let Some(msg) = socket.recv().await {
-        if let Ok(msg) = msg {
-            match msg {
-                axum::extract::ws::Message::Binary(data) => {
-                    if let Some(response) = handle_flatbuffer_message(&data) {
-                        let _ = socket.send(axum::extract::ws::Message::Binary(response)).await;
+async fn handle_socket(socket: WebSocket) {
+    let (mut sender, mut receiver) = socket.split();
+    let (tx, mut rx) = mpsc::channel::<Vec<u8>>(100);
+    
+    let socket_tx = tx.clone();
+    let message_handler = tokio::spawn(async move {
+        while let Some(msg) = receiver.next().await {
+            if let Ok(msg) = msg {
+                match msg {
+                    axum::extract::ws::Message::Binary(data) => {
+                        let tx_clone = socket_tx.clone();
+                        tokio::spawn(async move {
+                            if let Some(response) = handle_flatbuffer_message(&data).await {
+                                let _ = tx_clone.send(response).await;
+                            }
+                        });
                     }
+                    axum::extract::ws::Message::Close(_) => break,
+                    _ => {}
                 }
-                axum::extract::ws::Message::Close(_) => break,
-                _ => {}
+            } else {
+                break;
             }
-        } else {
-            break;
         }
-    }
+    });
+
+    let response_handler = tokio::spawn(async move {
+        while let Some(response) = rx.recv().await {
+            let _ = sender.send(axum::extract::ws::Message::Binary(response.into())).await;
+        }
+    });
+
+    let _ = tokio::try_join!(message_handler, response_handler);
 }
 
-fn handle_flatbuffer_message(data: &[u8]) -> Option<Vec<u8>> {
+async fn handle_flatbuffer_message(data: &[u8]) -> Option<Vec<u8>> {
     let message = flatbuffers::root::<Message>(data).ok()?;
     
     match message.data_type() {
         MessageData::InitializationMessage => {
-            Some(create_initialization_response(message.id()))
+            Some(create_initialization_response(message.id()).await)
         }
         _ => None,
     }
 }
 
-fn create_initialization_response(request_id: u64) -> Vec<u8> {
+async fn create_initialization_response(request_id: u64) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::new();
     
     // For now, create an empty response since ResponseData doesn't have an initialization response type
