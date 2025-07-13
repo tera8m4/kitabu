@@ -14,17 +14,39 @@ interface AppState {
 }
 const WebsocketURL = `ws://localhost:49156`;
 
+const STORAGE_KEY = 'kitabu-settings';
+
+const loadSettingsFromStorage = (): Partial<CaptureSettings> => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch (error) {
+    console.error('Failed to load settings from localStorage:', error);
+    return {};
+  }
+};
+
+const saveSettingsToStorage = (settings: CaptureSettings) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch (error) {
+    console.error('Failed to save settings to localStorage:', error);
+  }
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const defaultSettings: CaptureSettings = {
+    format: 'image/jpeg',
+    quality: 0.9,
+    autoDownload: true,
+    frameRate: 3,
+    intervalSeconds: 1,
+  };
+
   const [state, setState] = useState<AppState>({
     isLoading: false,
     timelineItems: [],
-    captureSettings: {
-      format: 'image/jpeg',
-      quality: 0.9,
-      autoDownload: true,
-      frameRate: 3,
-      intervalSeconds: 1,
-    },
+    captureSettings: { ...defaultSettings, ...loadSettingsFromStorage() },
     mediaStream: null,
     error: null,
   });
@@ -136,6 +158,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       captureSettings: newSettings,
     }));
     screenshotServiceRef.current?.updateCaptureSettings(newSettings);
+    saveSettingsToStorage(newSettings);
   };
 
   const setMediaStream = (stream: MediaStream | null) => {
