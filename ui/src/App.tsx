@@ -6,6 +6,7 @@ import Landing from './pages/Landing';
 import Home from './pages/Home';
 import About from './pages/About';
 import './App.css'
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -18,6 +19,12 @@ function App() {
               <ProtectedRoute>
                 <Navigation />
                 <Home />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Navigation />
+                <Settings />
               </ProtectedRoute>
             } />
             <Route path="/about" element={

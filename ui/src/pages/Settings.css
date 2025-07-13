@@ -1,0 +1,131 @@
+.settings {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.settings h1 {
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.settings-section {
+  margin-bottom: 40px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.settings-section h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.preview-container {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.preview-canvas {
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background: #000;
+  user-select: none;
+  width: 100%;
+  max-width: 1000px;
+  height: auto;
+}
+
+.crop-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.btn-primary:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-secondary:hover {
+  background: #545b62;
+}
+
+.crop-info {
+  background: #e7f3ff;
+  border: 1px solid #b3d7ff;
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.crop-info p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.setting-group {
+  margin-bottom: 20px;
+}
+
+.setting-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #555;
+}
+
+.setting-group select,
+.setting-group input[type="range"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.setting-group input[type="range"] {
+  margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+  .settings {
+    padding: 10px;
+  }
+  
+  .crop-controls {
+    flex-direction: column;
+  }
+  
+  .crop-controls button {
+    width: 100%;
+  }
+}

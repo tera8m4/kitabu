@@ -19,6 +19,11 @@ const Navigation = () => {
               About
             </Link>
           </li>
+          <li className="nav-item">
+            <Link to="/settings" className="nav-link">
+              Settings
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>

@@ -1,9 +1,17 @@
+export interface CropRectangle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface CaptureSettings {
   format: 'image/png' | 'image/jpeg' | 'image/webp';
   quality: number;
   autoDownload: boolean;
   frameRate: number;
   intervalSeconds: number;
+  cropRectangle?: CropRectangle;
 }
 
 export class MediaStreamScreenshotService {
@@ -44,9 +52,16 @@ export class MediaStreamScreenshotService {
         video.onloadedmetadata = resolve;
       });
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx?.drawImage(video, 0, 0);
+      const crop = this.captureSettings.cropRectangle;
+      if (crop) {
+        canvas.width = crop.width;
+        canvas.height = crop.height;
+        ctx?.drawImage(video, crop.x, crop.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
+      } else {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx?.drawImage(video, 0, 0);
+      }
 
       return new Promise((resolve) => {
         canvas.toBlob((blob) => {
