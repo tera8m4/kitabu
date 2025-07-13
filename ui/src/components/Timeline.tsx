@@ -2,9 +2,11 @@ import './Timeline.css';
 import type { TimelineItem } from '../store/context';
 
 const Timeline = ({ items = [] }: { items: TimelineItem[] }) => {
+  const reversedItems = [...items].reverse();
+
   return (
     <div className="timeline">
-      {items.reverse().map((item, index) => (
+      {reversedItems.map((item, index) => (
         <div key={item.id || index} className="timeline-item">
           <div className="timeline-content">
             <div className="timeline-image">

@@ -17,14 +17,12 @@
 
 .timeline-image {
   width: 100%;
-  height: 200px;
   overflow: hidden;
 }
 
 .timeline-image img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   display: block;
 }
 
@@ -45,9 +43,6 @@
     padding: 10px;
   }
   
-  .timeline-image {
-    height: 150px;
-  }
   
   .timeline-text {
     padding: 15px;
