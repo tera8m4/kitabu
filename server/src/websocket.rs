@@ -82,11 +82,22 @@ impl WebSocketService {
     }
 
     pub async fn send_message_to_clients(&self, message: Vec<u8>) {
-        let clients_guard = self.clients.lock().await;
-        for client_tx in clients_guard.iter() {
-            let _ = client_tx.send(message.clone()).await;
+        let mut clients_guard = self.clients.lock().await;
+        let original_count = clients_guard.len();
+        
+        // Send to all clients and collect failed sends
+        clients_guard.retain(|client_tx| {
+            match client_tx.try_send(message.clone()) {
+                Ok(_) => true,                    // Keep successful clients
+                Err(_) => false,                  // Remove failed/closed clients
+            }
+        });
+        
+        let final_count = clients_guard.len();
+        if original_count != final_count {
+            println!("Cleaned up {} disconnected clients", original_count - final_count);
         }
-        println!("Sent message to {} clients", clients_guard.len());
+        println!("Sent message to {} clients", final_count);
     }
 }
 
