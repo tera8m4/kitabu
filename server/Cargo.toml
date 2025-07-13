@@ -9,3 +9,7 @@ tokio = { version = "1.46", features = ["full"] }
 flatbuffers = "25"
 futures-util = "0.3"
 global-hotkey = "0.7"
+image = "0.25.6"
+
+[dependencies.rust-paddle-ocr]
+git = "https://github.com/zibo-chen/rust-paddle-ocr.git"

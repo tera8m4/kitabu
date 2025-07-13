@@ -3,9 +3,8 @@ use axum::{
     Router,
 };
 use std::net::SocketAddr;
-use tokio::net::TcpListener;
 use std::sync::Arc;
-use tokio::sync::Mutex;
+use tokio::net::TcpListener;
 
 mod websocket;
 mod hotkey;
@@ -13,31 +12,31 @@ mod messages;
 
 #[allow(dead_code, unused_imports, unsafe_code, unsafe_op_in_unsafe_fn)]
 mod messages_generated;
+mod paddle_ocr_service;
 
-use websocket::{websocket_handler, ClientSenders};
 use hotkey::HotkeyManager;
+use websocket::WebSocketService;
 
 #[tokio::main]
 async fn main() {
-    // Create shared state for connected clients
-    let clients: ClientSenders = Arc::new(Mutex::new(Vec::new()));
+    // Create WebSocket service
+    let websocket_service = Arc::new(WebSocketService::new());
     
     // Set up global hotkey manager
-    let hotkey_manager = HotkeyManager::new().expect("Failed to create hotkey manager");
-    hotkey_manager.register_ctrl_a().expect("Failed to register Ctrl+A hotkey");
-    
-    // Clone clients for hotkey task
-    let clients_for_hotkey = clients.clone();
-    
+    let hotkey_manager = HotkeyManager::new(websocket_service.clone()).expect("Failed to create hotkey manager");
+    hotkey_manager.register_alt_a().expect("Failed to register Ctrl+A hotkey");
+
     // Spawn hotkey listener task
     let hotkey_task = tokio::spawn(async move {
-        hotkey_manager.start_listening(clients_for_hotkey).await;
+        hotkey_manager.start_listening().await;
     });
     
     // Set up WebSocket server
+    let websocket_service_for_app = websocket_service.clone();
     let app = Router::new()
-        .route("/", get(websocket_handler))
-        .with_state(clients);
+        .route("/", get(move |ws| async move {
+            websocket_service_for_app.handle_websocket(ws).await
+        }));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 49156));
     let listener = TcpListener::bind(&addr).await.unwrap();
