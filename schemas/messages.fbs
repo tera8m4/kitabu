@@ -16,6 +16,7 @@ table OCRMessage {
 union MessageData {
   InitializationMessage,
   RequestScreenshot,
+  ResponseScreenShot,
   OCRMessage
 }
 
@@ -35,11 +36,3 @@ table ResponseScreenShot {
   image: [uint8];
 }
 
-union ResponseData {
-  ResponseScreenShot,
-}
-
-table Response {
-  id: uint64;
-  data: ResponseData;
-}
