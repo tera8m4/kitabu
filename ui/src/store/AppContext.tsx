@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext, type TimelineItem } from './context';
+import * as flatbuffers from 'flatbuffers';
+import {
+  Message, MessageData, InitializationMessage, 
+  ResponseScreenShot, OCRMessage,
+  ImageFormat} from '../schemas/protocol';
 
 interface CaptureSettings {
   format: 'image/png' | 'image/jpeg' | 'image/webp';
@@ -36,9 +41,149 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     error: null,
   });
 
+  // Use ref to store current state for closures
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
   // Derived state
   const isInitialized = state.mediaStream !== null && state.websocket !== null;
   const navigate = useNavigate();
+
+  const sendInitializationMessage = (ws: WebSocket) => {
+    const builder = new flatbuffers.Builder(1024);
+
+    const initMessageOffset = InitializationMessage.createInitializationMessage(builder);
+
+    const messageOffset = Message.createMessage(
+      builder,
+      BigInt(Date.now()),
+      MessageData.InitializationMessage,
+      initMessageOffset
+    );
+
+    builder.finish(messageOffset);
+    ws.send(builder.asUint8Array());
+  };
+
+  const captureScreenshotData = async (): Promise<Uint8Array | null> => {
+    const currentState = stateRef.current;
+    if (!currentState.mediaStream) return null;
+
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const video = document.createElement('video');
+
+      video.srcObject = currentState.mediaStream;
+      video.play();
+
+      await new Promise((resolve) => {
+        video.onloadedmetadata = resolve;
+      });
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx?.drawImage(video, 0, 0);
+
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            blob.arrayBuffer().then(buffer => {
+              resolve(new Uint8Array(buffer));
+            });
+          } else {
+            resolve(null);
+          }
+        }, 'image/png');
+      });
+
+    } catch (error) {
+      console.error('Error capturing screenshot:', error);
+      return null;
+    }
+  };
+
+  const sendScreenshotResponse = (imageData: Uint8Array) => {
+    const currentState = stateRef.current;
+    if (!currentState.websocket) return;
+
+    const builder = new flatbuffers.Builder(imageData.length + 1024);
+
+    const keyOffset = builder.createString('screenshot');
+    const imageOffset = ResponseScreenShot.createImageVector(builder, imageData);
+
+    const responseScreenShotOffset = ResponseScreenShot.createResponseScreenShot(
+      builder,
+      keyOffset,
+      ImageFormat.PNG,
+      imageOffset
+    );
+
+    const responseOffset = Message.createMessage(
+      builder,
+      BigInt(Date.now()),
+      MessageData.ResponseScreenShot,
+      responseScreenShotOffset
+    );
+
+    builder.finish(responseOffset);
+    currentState.websocket.send(builder.asUint8Array());
+  };
+
+  const handleScreenshotRequest = async () => {
+    const imageData = await captureScreenshotData();
+    if (imageData) {
+      sendScreenshotResponse(imageData);
+    }
+  };
+
+  const handleWebSocketMessage = async (event: MessageEvent) => {
+    try {
+      const buffer = new Uint8Array(event.data);
+      const bb = new flatbuffers.ByteBuffer(buffer);
+      const message = Message.getRootAsMessage(bb);
+
+      const messageType = message.dataType();
+ 
+
+      if (messageType === MessageData.RequestScreenshot) {
+        await handleScreenshotRequest();
+      } else if (messageType === MessageData.OCRMessage) {
+        const ocr = new OCRMessage();
+        message.data(ocr);
+        const ocrText = ocr.text();
+        
+        if (ocrText) {
+          // Capture current screenshot to add with OCR text
+          const imageData = await captureScreenshotData();
+          if (imageData) {
+            // Convert image data to base64 data URL
+            const blob = new Blob([imageData], { type: 'image/png' });
+            const reader = new FileReader();
+            reader.onload = () => {
+              const base64Image = reader.result as string;
+              
+              // Add to timeline with screenshot and OCR text
+              const newItem: TimelineItem = {
+                id: Date.now().toString(),
+                image: base64Image,
+                text: ocrText,
+                timestamp: new Date(),
+              };
+              
+              setState(prev => ({
+                ...prev,
+                timelineItems: [...prev.timelineItems, newItem],
+              }));
+            };
+            reader.readAsDataURL(blob);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error handling WebSocket message:', error);
+    }
+  };
 
   const initializeApp = async () => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
@@ -48,7 +193,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const ws = new WebSocket(WebsocketURL);
 
       await new Promise((resolve, reject) => {
-        ws.onopen = resolve;
+        ws.onopen = () => {
+          ws.binaryType = 'arraybuffer';
+          ws.onmessage = handleWebSocketMessage;
+          sendInitializationMessage(ws);
+          resolve(undefined);
+        };
         ws.onerror = () => reject(new Error('Failed to connect to WebSocket server'));
         setTimeout(() => reject(new Error('WebSocket connection timeout')), 5000);
       });
