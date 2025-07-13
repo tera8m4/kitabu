@@ -37,7 +37,7 @@ export class MediaStreamScreenshotService {
     this.captureSettings = settings;
   }
 
-  async captureScreenshot(): Promise<Uint8Array | null> {
+  async captureScreenshot(fullscreen: boolean = false): Promise<Uint8Array | null> {
     if (!this.mediaStream) return null;
 
     try {
@@ -53,7 +53,7 @@ export class MediaStreamScreenshotService {
       });
 
       const crop = this.captureSettings.cropRectangle;
-      if (crop) {
+      if (crop && !fullscreen) {
         canvas.width = crop.width;
         canvas.height = crop.height;
         ctx?.drawImage(video, crop.x, crop.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
@@ -80,8 +80,8 @@ export class MediaStreamScreenshotService {
     }
   }
 
-  async captureScreenshotAsBase64(): Promise<string | null> {
-    const imageData = await this.captureScreenshot();
+  async captureFullScreenshotAsBase64(): Promise<string | null> {
+    const imageData = await this.captureScreenshot(true);
     if (!imageData) return null;
 
     return new Promise((resolve) => {

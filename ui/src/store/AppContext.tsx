@@ -42,7 +42,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const navigate = useNavigate();
 
   const handleOCRMessage = async (ocrText: string) => {
-    const base64Image = await screenshotServiceRef.current?.captureScreenshotAsBase64();
+    const base64Image = await screenshotServiceRef.current?.captureFullScreenshotAsBase64();
     if (base64Image) {
       const newItem: TimelineItem = {
         id: Date.now().toString(),
