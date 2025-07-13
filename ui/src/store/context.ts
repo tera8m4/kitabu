@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import type { CaptureSettings } from '../services/screenshot';
 
 export interface TimelineItem {
   id: string;
@@ -7,20 +8,11 @@ export interface TimelineItem {
   timestamp: Date;
 }
 
-interface CaptureSettings {
-  format: 'image/png' | 'image/jpeg' | 'image/webp';
-  quality: number;
-  autoDownload: boolean;
-  frameRate: number;
-  intervalSeconds: number;
-}
-
 interface AppState {
   isLoading: boolean;
   timelineItems: TimelineItem[];
   captureSettings: CaptureSettings;
   mediaStream: MediaStream | null;
-  websocket: WebSocket | null;
   error: string | null;
 }
 
@@ -30,7 +22,6 @@ export interface AppContextType {
   addTimelineItem: (item: Omit<TimelineItem, 'id' | 'timestamp'>) => void;
   updateCaptureSettings: (settings: Partial<CaptureSettings>) => void;
   setMediaStream: (stream: MediaStream | null) => void;
-  setWebSocket: (ws: WebSocket | null) => void;
   isInitialized: boolean;
 }
 
