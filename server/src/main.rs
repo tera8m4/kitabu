@@ -24,7 +24,8 @@ async fn main() {
     
     // Set up global hotkey manager
     let hotkey_manager = HotkeyManager::new(websocket_service.clone()).expect("Failed to create hotkey manager");
-    hotkey_manager.register_alt_a().expect("Failed to register Ctrl+A hotkey");
+    hotkey_manager.register_screenshot_bind().expect("Failed to register Alt+A hotkey");
+    hotkey_manager.register_audio_recoding_bind().expect("Failed to register Alt+R hotkey");
 
     // Spawn hotkey listener task
     let hotkey_task = tokio::spawn(async move {
