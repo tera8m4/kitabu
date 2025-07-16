@@ -1,5 +1,5 @@
 use notify_rust::Notification;
-static ICON: &[u8] = include_bytes!("../assets/icon.png");
+static ICON: &[u8] = include_bytes!("../../assets/icon.png");
 
 pub fn send_notification(message: &str) {
     // i couldn't figure out how to pass the image
