@@ -9,8 +9,8 @@ use tokio::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use chrono;
 use std::env;
-
 use crate::messages::create_hotkey_message;
+use crate::notification_service::send_notification;
 use crate::websocket::WebSocketService;
 
 pub struct HotkeyManager {
@@ -43,13 +43,14 @@ impl HotkeyManager {
         Ok(())
     }
 
-
     async fn toggle_audio_recording(&self) {
         let currently_recording = self.is_recording.load(Ordering::SeqCst);
         
         if currently_recording {
+            send_notification("Finished audio recording");
             self.stop_audio_recording().await;
         } else {
+            send_notification("Started audio recording");
             self.start_audio_recording().await;
         }
     }
@@ -66,10 +67,8 @@ impl HotkeyManager {
         let filename = tmp_dir.join(format!("audio_recording_{}.mp3", timestamp));
         let filename_str = filename.to_string_lossy().to_string();
         
-        let recording_state = self.is_recording.clone();
-        
         tokio::spawn(async move {
-            let child = Command::new("ffmpeg")
+            let _ = Command::new("ffmpeg")
                 .arg("-f")
                 .arg("pulse")
                 .arg("-i")
@@ -83,32 +82,6 @@ impl HotkeyManager {
                 .arg("-y")
                 .arg(&filename_str)
                 .spawn();
-
-            match child {
-                Ok(mut process) => {
-                    let _ = Command::new("notify-send")
-                        .arg("Audio Recording")
-                        .arg(&format!("Started recording: {}", filename_str))
-                        .spawn();
-                    
-                    let _ = process.wait().await;
-                    
-                    if recording_state.load(Ordering::SeqCst) {
-                        recording_state.store(false, Ordering::SeqCst);
-                        let _ = Command::new("notify-send")
-                            .arg("Audio Recording")
-                            .arg(&format!("Completed: {}", filename_str))
-                            .spawn();
-                    }
-                }
-                Err(e) => {
-                    recording_state.store(false, Ordering::SeqCst);
-                    let _ = Command::new("notify-send")
-                        .arg("Audio Recording Error")
-                        .arg(&format!("Failed to start recording: {}", e))
-                        .spawn();
-                }
-            }
         });
     }
 
@@ -122,11 +95,6 @@ impl HotkeyManager {
         let _ = Command::new("pkill")
             .arg("-f")
             .arg("ffmpeg.*pulse.*@DEFAULT_MONITOR@")
-            .spawn();
-        
-        let _ = Command::new("notify-send")
-            .arg("Audio Recording")
-            .arg("Recording stopped")
             .spawn();
     }
 

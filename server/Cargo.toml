@@ -11,6 +11,7 @@ futures-util = "0.3"
 global-hotkey = "0.7"
 image = "0.25.6"
 chrono = { version = "0.4", features = ["serde"] }
+notify-rust = { version = "4", features = ["images"] }
 
 [dependencies.rust-paddle-ocr]
 git = "https://github.com/zibo-chen/rust-paddle-ocr.git"

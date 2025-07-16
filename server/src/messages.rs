@@ -62,7 +62,6 @@ impl MessageService {
     }
 }
 
-
 pub async fn create_initialization_response(request_id: u64) -> Vec<u8> {
     let mut builder = FlatBufferBuilder::new();
     

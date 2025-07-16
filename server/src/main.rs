@@ -13,6 +13,7 @@ mod messages;
 #[allow(dead_code, unused_imports, unsafe_code, unsafe_op_in_unsafe_fn)]
 mod messages_generated;
 mod paddle_ocr_service;
+mod notification_service;
 
 use hotkey::HotkeyManager;
 use websocket::WebSocketService;
