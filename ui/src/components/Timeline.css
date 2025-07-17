@@ -38,6 +38,58 @@
   font-size: 14px;
 }
 
+.audio-player {
+  margin: 15px 0;
+}
+
+.audio-player audio {
+  width: 100%;
+  max-width: 400px;
+  height: 40px;
+}
+
+.timeline-actions {
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.anki-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.anki-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.audio-button {
+  background: #4CAF50;
+  color: white;
+}
+
+.audio-button:hover {
+  background: #45a049;
+}
+
+.screenshot-button {
+  background: #2196F3;
+  color: white;
+}
+
+.screenshot-button:hover {
+  background: #1976D2;
+}
+
 @media (max-width: 768px) {
   .timeline {
     padding: 10px;

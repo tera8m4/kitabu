@@ -6,6 +6,7 @@ export interface TimelineItem {
   image: string;
   text: string;
   timestamp: Date;
+  audio?: Blob;
 }
 
 interface AppState {

@@ -13,11 +13,16 @@ table OCRMessage {
   text: string;
 }
 
+table AudioMessage {
+  audioData: [uint8];
+}
+
 union MessageData {
   InitializationMessage,
   RequestScreenshot,
   ResponseScreenShot,
-  OCRMessage
+  OCRMessage,
+  AudioMessage
 }
 
 table Message {

@@ -74,7 +74,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       setState(prev => ({
         ...prev,
-        timelineItems: [...prev.timelineItems, newItem],
+        timelineItems: [newItem, ...prev.timelineItems],
       }));
     }
   };
