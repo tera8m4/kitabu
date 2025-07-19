@@ -21,6 +21,7 @@ export interface AppContextType {
   state: AppState;
   initializeApp: () => Promise<void>;
   addTimelineItem: (item: Omit<TimelineItem, 'id' | 'timestamp'>) => void;
+  updateTimelineItem: (id: string, updates: Partial<TimelineItem>) => void;
   updateCaptureSettings: (settings: Partial<CaptureSettings>) => void;
   setMediaStream: (stream: MediaStream | null) => void;
   isInitialized: boolean;

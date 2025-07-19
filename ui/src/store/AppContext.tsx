@@ -151,6 +151,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
+  const updateTimelineItem = (id: string, updates: Partial<TimelineItem>) => {
+    setState(prev => ({
+      ...prev,
+      timelineItems: prev.timelineItems.map(item =>
+        item.id === id ? { ...item, ...updates } : item
+      ),
+    }));
+  };
+
   const updateCaptureSettings = (settings: Partial<CaptureSettings>) => {
     const newSettings = { ...state.captureSettings, ...settings };
     setState(prev => ({
@@ -172,6 +181,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       state,
       initializeApp,
       addTimelineItem,
+      updateTimelineItem,
       updateCaptureSettings,
       setMediaStream,
       isInitialized,

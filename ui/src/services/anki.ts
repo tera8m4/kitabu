@@ -110,11 +110,12 @@ export class AnkiService {
     }
 
     private async storeAudioFile(audioBlob: Blob): Promise<string> {
-        const arrayBuffer = await audioBlob.arrayBuffer();
-        const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
         if (audioBlob.type !== 'audio/mpeg') {
             throw new Error('Unsupported audio format. Only MP3 is supported.');
         }
+
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
         const extension = 'mp3';
         const filename = `audio_${Date.now()}.${extension}`;
 
