@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import './Navigation.css';
+import iconUrl from '../../../assets/icon.png';
 
 const Navigation = () => {
   return (
     <nav className="navigation">
       <div className="nav-container">
         <Link to="/home" className="nav-logo">
+          <img src={iconUrl} alt="Kitabu" className="nav-icon" />
           Kitabu
         </Link>
         <ul className="nav-menu">

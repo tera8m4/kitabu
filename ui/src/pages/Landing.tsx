@@ -1,4 +1,5 @@
 import { useApp } from '../store/useApp';
+import iconUrl from '../../../assets/icon.png';
 
 const Landing = () => {
   const { state, initializeApp } = useApp();
@@ -13,7 +14,24 @@ const Landing = () => {
       padding: '20px',
       textAlign: 'center'
     }}>
-      <h1>🖥️ Kitabu</h1>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '16px',
+        marginBottom: '8px'
+      }}>
+        <img
+          src={iconUrl}
+          alt="Kitabu"
+          style={{
+            width: '128px',
+            height: '128px',
+            objectFit: 'contain'
+          }}
+        />
+        <h1 style={{ margin: 0 }}>Kitabu</h1>
+      </div>
       <p>Click the button below to start OCR your VN!</p>
 
       <button

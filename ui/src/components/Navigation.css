@@ -25,10 +25,19 @@
   font-weight: bold;
   color: #007bff;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .nav-logo:hover {
   color: #0056b3;
+}
+
+.nav-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .nav-menu {
