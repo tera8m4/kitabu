@@ -2,13 +2,15 @@ import * as flatbuffers from 'flatbuffers';
 import {
   Message, MessageData, InitializationMessage,
   ResponseScreenShot, OCRMessage,
-  ImageFormat
+  ImageFormat,
+  AudioMessage
 } from '../schemas/protocol';
 import { MediaStreamScreenshotService } from './screenshot';
 
 export type MessageHandler = {
   onOCRMessage?: (text: string) => void;
   onError?: (error: Error) => void;
+  onAudio?: (audio: Blob) => void;
 };
 
 export class WebSocketService {
@@ -104,7 +106,20 @@ export class WebSocketService {
           }
           break;
         }
+        case MessageData.AudioMessage: {
+          const audioMessage = new AudioMessage();
+          message.data(audioMessage);
+          if (audioMessage.audioDataLength() === 0) {
+            throw new Error(`Failed to receive audio. Length is zero`);
+          }
+          const blob: Blob = new Blob([audioMessage.audioDataArray()!], {
+            type: "audio/mpeg"
+          });
+          this.messageHandler.onAudio!(blob);
+          break;
+        }
         default:
+          console.error("Unsupported message");
           break;
       }
     } catch (error) {

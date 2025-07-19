@@ -79,6 +79,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const handleAudioMessage = (audio: Blob) => {
+    const timelineItems = stateRef.current.timelineItems;
+    if (timelineItems.length === 0) {
+      return;
+    }
+
+    const id = timelineItems[0].id;
+    updateTimelineItem(id, { audio });
+  }
+
   const initializeApp = async () => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
@@ -99,7 +109,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const wsService = new WebSocketService(WebsocketURL, screenshotService);
       wsService.setMessageHandler({
         onOCRMessage: handleOCRMessage,
-        onError: (error) => console.error('WebSocket error:', error)
+        onError: (error) => console.error('WebSocket error:', error),
+        onAudio: handleAudioMessage,
       });
 
       // Connect to WebSocket server
