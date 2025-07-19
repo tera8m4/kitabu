@@ -6,17 +6,16 @@ use global_hotkey::{
 use std::sync::Arc;
 use tokio::time::{sleep, Duration};
 use tokio::process::Command;
-use std::sync::atomic::{AtomicBool, Ordering};
 use chrono;
 use std::env;
-use crate::messages::create_hotkey_message;
+use crate::messages::{create_audio_message, create_hotkey_message};
 use crate::notification_service::send_notification;
 use crate::websocket::WebSocketService;
 
 pub struct HotkeyManager {
     manager: GlobalHotKeyManager,
     websocket_service: Arc<WebSocketService>,
-    is_recording: Arc<AtomicBool>,
+    recording_audio_path: Option<std::path::PathBuf>,
 }
 
 impl HotkeyManager {
@@ -25,7 +24,7 @@ impl HotkeyManager {
         Ok(Self { 
             manager, 
             websocket_service,
-            is_recording: Arc::new(AtomicBool::new(false)),
+            recording_audio_path: None,
         })
     }
 
@@ -43,8 +42,8 @@ impl HotkeyManager {
         Ok(())
     }
 
-    async fn toggle_audio_recording(&self) {
-        let currently_recording = self.is_recording.load(Ordering::SeqCst);
+    async fn toggle_audio_recording(&mut self) {
+        let currently_recording = self.recording_audio_path.is_some();
         
         if currently_recording {
             send_notification("Finished audio recording");
@@ -55,16 +54,11 @@ impl HotkeyManager {
         }
     }
 
-    async fn start_audio_recording(&self) {
-        if self.is_recording.load(Ordering::SeqCst) {
-            return;
-        }
-
-        self.is_recording.store(true, Ordering::SeqCst);
-        
+    async fn start_audio_recording(&mut self) {
         let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
         let tmp_dir = env::temp_dir();
         let filename = tmp_dir.join(format!("audio_recording_{}.mp3", timestamp));
+        self.recording_audio_path = Some(filename.clone());
         let filename_str = filename.to_string_lossy().to_string();
         
         tokio::spawn(async move {
@@ -76,29 +70,31 @@ impl HotkeyManager {
                 .arg("-c:a")
                 .arg("libmp3lame")
                 .arg("-b:a")
-                .arg("192k")
+                .arg("64k")
                 .arg("-ar")
-                .arg("44100")
+                .arg("22050")
                 .arg("-y")
                 .arg(&filename_str)
                 .spawn();
         });
     }
 
-    async fn stop_audio_recording(&self) {
-        if !self.is_recording.load(Ordering::SeqCst) {
-            return;
-        }
-
-        self.is_recording.store(false, Ordering::SeqCst);
-        
+    async fn stop_audio_recording(&mut self) {
         let _ = Command::new("pkill")
             .arg("-f")
             .arg("ffmpeg.*pulse.*@DEFAULT_MONITOR@")
             .spawn();
+
+        if let Some(path) = self.recording_audio_path.take() {
+            // Wait a bit for ffmpeg to properly close the file
+            sleep(Duration::from_millis(500)).await;
+            
+            let message = create_audio_message(&path);
+            self.websocket_service.send_message_to_clients(message).await;
+        }
     }
 
-    pub async fn start_listening(&self) {
+    pub async fn start_listening(&mut self) {
         let receiver = GlobalHotKeyEvent::receiver();
         loop {
             if let Ok(event) = receiver.try_recv() {
@@ -108,6 +104,7 @@ impl HotkeyManager {
                             let message = create_hotkey_message().await;
                             self.websocket_service.send_message_to_clients(message.clone()).await;
                             println!("Hotkey pressed - Alt+A");
+                            send_notification("Request screenshot from stream was send");
                         }
                         id if id == HotKey::new(Some(Modifiers::ALT), Code::KeyR).id() => {
                             self.toggle_audio_recording().await;

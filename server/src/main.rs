@@ -24,7 +24,7 @@ async fn main() {
     let websocket_service = Arc::new(WebSocketService::new());
     
     // Set up global hotkey manager
-    let hotkey_manager = HotkeyManager::new(websocket_service.clone()).expect("Failed to create hotkey manager");
+    let mut hotkey_manager = HotkeyManager::new(websocket_service.clone()).expect("Failed to create hotkey manager");
     hotkey_manager.register_screenshot_bind().expect("Failed to register Alt+A hotkey");
     hotkey_manager.register_audio_recoding_bind().expect("Failed to register Alt+R hotkey");
 

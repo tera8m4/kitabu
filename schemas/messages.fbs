@@ -14,7 +14,7 @@ table OCRMessage {
 }
 
 table AudioMessage {
-  audioData: [uint8];
+  audio_data: [uint8];
 }
 
 union MessageData {

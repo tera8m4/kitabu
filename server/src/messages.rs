@@ -90,3 +90,32 @@ pub async fn create_hotkey_message() -> Vec<u8> {
     builder.finish(response, None);
     builder.finished_data().to_vec()
 }
+
+pub fn create_audio_message(path: &std::path::Path) -> Vec<u8> {
+    let mut builder = FlatBufferBuilder::new();
+
+    let audio_data = match std::fs::read(path) {
+        Ok(data) => {
+            println!("Successfully read audio file: {} bytes from {:?}", data.len(), path);
+            data
+        },
+        Err(e) => {
+            println!("Failed to read audio file {:?}: {}", path, e);
+            Vec::new()
+        }
+    };
+    
+    let audio_bytes = builder.create_vector(&audio_data);
+    let audio_message = AudioMessage::create(&mut builder, &AudioMessageArgs {
+        audio_data: Some(audio_bytes),
+    });
+
+    let message = Message::create(&mut builder, &MessageArgs {
+        id: 0,
+        data_type: MessageData::AudioMessage,
+        data: Some(audio_message.as_union_value()),
+    });
+
+    builder.finish(message, None);
+    builder.finished_data().to_vec()
+}
