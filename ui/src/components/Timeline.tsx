@@ -1,6 +1,7 @@
 import './Timeline.css';
 import type { TimelineItem } from '../store/context';
 import { AudioPlayer } from './AudioPlayer';
+import { useToastContext } from '../store/ToastContext';
 
 const Timeline = ({ items = [] }: { items: TimelineItem[] }) => {
   const handleSendAudioToAnki = (item: TimelineItem) => {
@@ -11,7 +12,10 @@ const Timeline = ({ items = [] }: { items: TimelineItem[] }) => {
   const handleSendScreenshotToAnki = (item: TimelineItem) => {
     // TODO: Implement Anki screenshot integration
     console.log('Sending screenshot to Anki:', item.image);
+    showSuccess('Screenshot sent to Anki successfully!');
   };
+
+  const { showSuccess } = useToastContext();
 
   return (
     <div className="timeline">

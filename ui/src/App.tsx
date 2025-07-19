@@ -7,35 +7,38 @@ import Home from './pages/Home';
 import About from './pages/About';
 import './App.css'
 import Settings from './pages/Settings';
+import { ToastProvider } from './store/ToastContext';
 
 function App() {
   return (
     <Router>
-      <AppProvider>
-        <div className="app">
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/home" element={
-              <ProtectedRoute>
-                <Navigation />
-                <Home />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Navigation />
-                <Settings />
-              </ProtectedRoute>
-            } />
-            <Route path="/about" element={
-              <ProtectedRoute>
-                <Navigation />
-                <About />
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </div>
-      </AppProvider>
+      <ToastProvider>
+        <AppProvider>
+          <div className="app">
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/home" element={
+                <ProtectedRoute>
+                  <Navigation />
+                  <Home />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Navigation />
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="/about" element={
+                <ProtectedRoute>
+                  <Navigation />
+                  <About />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </div>
+        </AppProvider>
+      </ToastProvider>
     </Router>
   )
 }
