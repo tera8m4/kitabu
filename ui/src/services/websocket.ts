@@ -14,8 +14,13 @@ export type MessageHandler = {
 export class WebSocketService {
   private ws: WebSocket | null = null;
   private messageHandler: MessageHandler = {};
+  private url: string;
+  private screenshotService: MediaStreamScreenshotService;
 
-  constructor(private url: string, private screenshotService: MediaStreamScreenshotService) {}
+  constructor(url: string, screenshotService: MediaStreamScreenshotService) {
+    this.url = url;
+    this.screenshotService = screenshotService;
+  }
 
   setMessageHandler(handler: MessageHandler) {
     this.messageHandler = handler;
