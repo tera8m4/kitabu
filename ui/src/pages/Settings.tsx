@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef, useEffect } from 'react';
+import React, { useState, useContext, useRef, useEffect, useCallback } from 'react';
 import { AppContext } from '../store/context';
 import type { CropRectangle } from '../services/screenshot';
 import './Settings.css';
@@ -18,23 +18,7 @@ const Settings = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    if (state.mediaStream && videoRef.current) {
-      videoRef.current.srcObject = state.mediaStream;
-      videoRef.current.play();
-      videoRef.current.onloadedmetadata = () => {
-        capturePreview();
-      };
-    }
-  }, [state.mediaStream]);
-
-  useEffect(() => {
-    if (cropRect) {
-      updateCaptureSettings({ cropRectangle: cropRect });
-    }
-  }, [cropRect]);
-
-  const capturePreview = () => {
+  const capturePreview = useCallback(() => {
     if (!state.mediaStream || !videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
@@ -50,16 +34,40 @@ const Settings = () => {
       ctx!.lineWidth = 2;
       ctx!.strokeRect(cropRect.x, cropRect.y, cropRect.width, cropRect.height);
     }
-  };
+  }, [state.mediaStream, videoRef, canvasRef, cropRect]);
+
+  useEffect(() => {
+    if (state.mediaStream && videoRef.current) {
+      const video = videoRef.current;
+      video.srcObject = state.mediaStream;
+      
+      const handleLoadedMetadata = () => {
+        capturePreview();
+      };
+      
+      video.onloadedmetadata = handleLoadedMetadata;
+      video.play().catch(error => {
+        if (error.name !== 'AbortError') {
+          console.error('Video play error:', error);
+        }
+      });
+    }
+  }, [state.mediaStream]);
+
+  useEffect(() => {
+    if (cropRect) {
+      updateCaptureSettings({ cropRectangle: cropRect });
+    }
+  }, [cropRect]);
 
   const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) return { x: 0, y: 0 };
-    
+
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    
+
     return {
       x: (e.clientX - rect.left) * scaleX,
       y: (e.clientY - rect.top) * scaleY
@@ -75,24 +83,24 @@ const Settings = () => {
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDragging || !dragStart) return;
-    
+
     const coords = getCanvasCoordinates(e);
     const width = coords.x - dragStart.x;
     const height = coords.y - dragStart.y;
-    
+
     setCropRect({
       x: width >= 0 ? dragStart.x : coords.x,
       y: height >= 0 ? dragStart.y : coords.y,
       width: Math.abs(width),
       height: Math.abs(height)
     });
-    
+
     capturePreview();
   };
 
   const handleMouseUp = () => {
     if (!isDragging) return;
-    
+
     setIsDragging(false);
     setDragStart(null);
   };
@@ -115,13 +123,13 @@ const Settings = () => {
   return (
     <div className="settings">
       <h1>Settings</h1>
-      
+
       <div className="settings-section">
         <h2>Crop Rectangle</h2>
         <p>Drag on the preview to select a crop area. Changes are applied automatically.</p>
-        
+
         <div className="preview-container">
-          <video 
+          <video
             ref={videoRef}
             style={{ display: 'none' }}
             muted
@@ -134,7 +142,7 @@ const Settings = () => {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
-            style={{ 
+            style={{
               cursor: 'crosshair'
             }}
           />
@@ -159,10 +167,10 @@ const Settings = () => {
         <div className="setting-group">
           <label>
             Format:
-            <select 
+            <select
               value={state.captureSettings.format}
-              onChange={(e) => updateCaptureSettings({ 
-                format: e.target.value as 'image/png' | 'image/jpeg' | 'image/webp' 
+              onChange={(e) => updateCaptureSettings({
+                format: e.target.value as 'image/png' | 'image/jpeg' | 'image/webp'
               })}
             >
               <option value="image/png">PNG</option>
@@ -171,11 +179,11 @@ const Settings = () => {
             </select>
           </label>
         </div>
-        
+
         <div className="setting-group">
           <label>
             Quality: {Math.round(state.captureSettings.quality * 100)}%
-            <input 
+            <input
               type="range"
               min="0.1"
               max="1"

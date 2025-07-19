@@ -1,6 +1,6 @@
 import * as flatbuffers from 'flatbuffers';
 import {
-  Message, MessageData, InitializationMessage, 
+  Message, MessageData, InitializationMessage,
   ResponseScreenShot, OCRMessage,
   ImageFormat
 } from '../schemas/protocol';
@@ -29,7 +29,7 @@ export class WebSocketService {
   async connect(): Promise<WebSocket> {
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(this.url);
-      
+
       ws.onopen = () => {
         ws.binaryType = 'arraybuffer';
         ws.onmessage = this.handleMessage.bind(this);
@@ -37,7 +37,7 @@ export class WebSocketService {
         this.ws = ws;
         resolve(ws);
       };
-      
+
       ws.onerror = () => reject(new Error('Failed to connect to WebSocket server'));
       setTimeout(() => reject(new Error('WebSocket connection timeout')), 5000);
     });
@@ -89,7 +89,8 @@ export class WebSocketService {
         case MessageData.RequestScreenshot: {
           const imageData = await this.screenshotService.captureScreenshot();
           if (imageData) {
-            this.sendScreenshotResponse(imageData);
+            const buffer = new Uint8Array(await imageData.arrayBuffer());
+            this.sendScreenshotResponse(buffer);
           }
           break;
         }
@@ -97,7 +98,7 @@ export class WebSocketService {
           const ocr = new OCRMessage();
           message.data(ocr);
           const ocrText = ocr.text();
-          
+
           if (ocrText && this.messageHandler.onOCRMessage) {
             this.messageHandler.onOCRMessage(ocrText);
           }

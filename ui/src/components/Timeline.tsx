@@ -1,21 +1,26 @@
 import './Timeline.css';
 import type { TimelineItem } from '../store/context';
 import { AudioPlayer } from './AudioPlayer';
-import { useToastContext } from '../store/ToastContext';
+import { AnkiService } from '../services/anki';
+import { useToastContext } from '../store/useToastContext';
 
 const Timeline = ({ items = [] }: { items: TimelineItem[] }) => {
+
+  const { showSuccess, showError } = useToastContext();
   const handleSendAudioToAnki = (item: TimelineItem) => {
-    // TODO: Implement Anki audio integration
-    console.log('Sending audio to Anki:', item.text);
+    showError('Send audio is not implemented: ' + item.id);
   };
 
-  const handleSendScreenshotToAnki = (item: TimelineItem) => {
-    // TODO: Implement Anki screenshot integration
-    console.log('Sending screenshot to Anki:', item.image);
-    showSuccess('Screenshot sent to Anki successfully!');
+  const handleSendScreenshotToAnki = async (item: TimelineItem) => {
+    AnkiService.getInstance().sendScreenshotToAnki(item.image)
+      .then(note => {
+        showSuccess(`Picture for note ${note} was updated`);
+      })
+      .catch(err => {
+        showError(`Failed to update. ${err.toString()}`)
+      })
   };
 
-  const { showSuccess } = useToastContext();
 
   return (
     <div className="timeline">
@@ -23,7 +28,7 @@ const Timeline = ({ items = [] }: { items: TimelineItem[] }) => {
         <div key={item.id || index} className="timeline-item">
           <div className="timeline-content">
             <div className="timeline-image">
-              <img src={item.image} alt={`Screenshot ${index + 1}`} />
+              <img src={URL.createObjectURL(item.image)} alt={`Screenshot ${index + 1}`} />
             </div>
             <div className="timeline-text">
               <p>{item.text}</p>
@@ -35,13 +40,13 @@ const Timeline = ({ items = [] }: { items: TimelineItem[] }) => {
               )}
             </div>
             <div className="timeline-actions">
-              <button 
+              <button
                 onClick={() => handleSendAudioToAnki(item)}
                 className="anki-button audio-button"
               >
                 Send sentence audio to Anki
               </button>
-              <button 
+              <button
                 onClick={() => handleSendScreenshotToAnki(item)}
                 className="anki-button screenshot-button"
               >

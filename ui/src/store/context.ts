@@ -3,7 +3,7 @@ import type { CaptureSettings } from '../services/screenshot';
 
 export interface TimelineItem {
   id: string;
-  image: string;
+  image: Blob;
   text: string;
   timestamp: Date;
   audio?: Blob;
@@ -27,3 +27,11 @@ export interface AppContextType {
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
+
+interface ToastContextType {
+  showSuccess: (message: string, duration?: number) => void;
+  showError: (message: string, duration?: number) => void;
+  showInfo: (message: string, duration?: number) => void;
+}
+
+export const ToastContext = createContext<ToastContextType | undefined>(undefined);

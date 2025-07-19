@@ -37,7 +37,7 @@ export class MediaStreamScreenshotService {
     this.captureSettings = settings;
   }
 
-  async captureScreenshot(fullscreen: boolean = false): Promise<Uint8Array | null> {
+  async captureScreenshot(fullscreen: boolean = false): Promise<Blob | null> {
     if (!this.mediaStream) return null;
 
     try {
@@ -65,13 +65,7 @@ export class MediaStreamScreenshotService {
 
       return new Promise((resolve) => {
         canvas.toBlob((blob) => {
-          if (blob) {
-            blob.arrayBuffer().then(buffer => {
-              resolve(new Uint8Array(buffer));
-            });
-          } else {
-            resolve(null);
-          }
+          resolve(blob);
         }, this.captureSettings.format, this.captureSettings.quality);
       });
     } catch (error) {
@@ -80,18 +74,7 @@ export class MediaStreamScreenshotService {
     }
   }
 
-  async captureFullScreenshotAsBase64(): Promise<string | null> {
-    const imageData = await this.captureScreenshot(true);
-    if (!imageData) return null;
-
-    return new Promise((resolve) => {
-      const blob = new Blob([imageData], { type: this.captureSettings.format });
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
+  async captureFullScreenshot(): Promise<Blob | null> {
+    return this.captureScreenshot(true);
   }
 }
